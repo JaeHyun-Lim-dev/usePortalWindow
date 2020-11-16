@@ -3,7 +3,7 @@ import SomePage from "./SomePage";
 import { usePortals } from "./PortalHook";
 import { makeObservable, observable, action } from "mobx";
 import { useObserver } from "mobx-react-lite";
-import { WindowPopup } from "./PortalHook";
+import { usePortalWindow, useWindowInfo } from "./PortalHook";
 
 class Store {
   value = 0;
@@ -25,39 +25,32 @@ export const store = new Store();
 const MainPage = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [count, setCount] = useState(0);
-  const [handler, setHandler] = useState();
-  const openMyWindow = WindowPopup.useWindowPopup(<SomePage count={count} />);
-
-  const handleToggle = useCallback(() => setIsOpen(!isOpen));
-  const closePortalWindow = useCallback((e) => {
-    e.close();
-  });
-  const windowOptions = "width=400px, height=600px";
-  const windowOpener = usePortals();
+  const popupUrl = "";
+  const popupTitle = "newPopupWindow";
+  const windowOptions = "width=400, height=600, center=true";
+  const openMyWindow = usePortalWindow(
+    <SomePage count={count} />,
+    popupUrl,
+    popupTitle,
+    windowOptions
+  );
+  const myHandler = useWindowInfo();
   const handleClick = useCallback(() => {
-    // setHandler(windowOpener.open(<SomePage count={count} />, "", windowOptions));
-    setHandler(openMyWindow());
-    // windowOpener.open(<SomePage count={count} />, "", windowOptions);
+    openMyWindow();
   }, [count]);
-
   const handleListClick = useCallback(() => {
-    // console.log(WindowPopup.portalList());
+    for (let [key, value] of myHandler()) {
+      value.handler.close();
+      myHandler(key, value, "remove");
+    }
   }, []);
 
-  const handleClose = () => {
-    handler.close();
-  };
   return useObserver(() => (
     <>
       {store.value}
       <button onClick={() => store.increment()}>count+1</button>
       <button onClick={handleClick}>??</button>
-      <button onClick={handleListClick}>!!</button>
-      <button onClick={handleClose}>close last window</button>
-      {/* {ReactDOM.createPortal(<SomePage count={count}/>, document.getElementById("root"))} */}
-      {/* <NewWindow>
-        <SomePage count={count} />
-      </NewWindow> */}
+      <button onClick={handleListClick}>collapse</button>
     </>
   ));
 };
