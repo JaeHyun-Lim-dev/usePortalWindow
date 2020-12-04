@@ -1,7 +1,6 @@
 import React, { useState, useContext, createContext } from "react";
 import ReactDOM from "react-dom";
 import nextId from "react-id-generator";
-
 export const PortalContext = createContext();
 
 export const PortalProvider = ({ children }) => {
@@ -49,17 +48,43 @@ export const usePortals = () => {
 };
 
 const WindowPopup = () => {
-  const usePortalWindow = (element, url, title, opts) => {
+  const usePortalWindow = ({
+    element = null,
+    url = "",
+    title = "",
+    opts = "",
+  }) => {
     /* 
-        element: renter target
-        url: blank
-        title: popup window title
+        element: render target
+        url: 별도로 지정 시 teespace app을 새로 엽니다(스토어 공유 불가)
+        title: popup window창의 title
         opts: window.open()이 지원하는 모든 option을 사용 가능합니다.
         https://developer.mozilla.org/ko/docs/Web/API/Window/open
         Google Chrome에서 듀얼 모니터 사용 시 top/left 속성이 적용되지 않는 버그가 존재합니다.
       */
     const windowOpener = usePortals();
+    function copyStyles(sourceDoc, targetDoc) {
+      Array.from(sourceDoc.styleSheets).forEach((styleSheet) => {
+        if (styleSheet.href) {
+          // for <link> elements loading CSS from a URL
+          const newLinkEl = sourceDoc.createElement("link");
 
+          newLinkEl.rel = "stylesheet";
+          newLinkEl.href = styleSheet.href;
+          targetDoc.head.appendChild(newLinkEl);
+        } else if (styleSheet.cssRules && styleSheet.cssRules.length > 0) {
+          // for <style> elements
+          const newStyleEl = sourceDoc.createElement("style");
+
+          Array.from(styleSheet.cssRules).forEach((cssRule) => {
+            // write the text of each rule into the body of the style element
+            newStyleEl.appendChild(sourceDoc.createTextNode(cssRule.cssText));
+          });
+
+          targetDoc.head.appendChild(newStyleEl);
+        }
+      });
+    }
     const openWindow = () => {
       let currentKey = nextId();
       const containerEl = document.createElement("div");
@@ -67,7 +92,7 @@ const WindowPopup = () => {
 
       externalWindow.document.body.appendChild(containerEl);
       externalWindow.document.title = title;
-
+      copyStyles(document, externalWindow.document);
       windowOpener.open(element, containerEl, externalWindow, currentKey);
       windowOpener.setPopupInfo(currentKey, {
         title: title,
@@ -102,4 +127,3 @@ const WindowPopup = () => {
 
 const { usePortalWindow, useWindowInfo } = WindowPopup();
 export { usePortalWindow, useWindowInfo };
-// export { windowPopup as WindowPopup };
