@@ -56,7 +56,7 @@ const WindowPopup = () => {
   }) => {
     /* 
         element: render target
-        url: 별도로 지정 시 teespace app을 새로 엽니다(스토어 공유 불가)
+        url: 별도로 지정 시 빈 페이지를 새로 엽니다(스토어 공유 불가)
         title: popup window창의 title
         opts: window.open()이 지원하는 모든 option을 사용 가능합니다.
         https://developer.mozilla.org/ko/docs/Web/API/Window/open
